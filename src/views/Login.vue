@@ -245,8 +245,15 @@ const handleRegister = async () => {
     
     console.log('Resultado do registro:', result)
     
-    if (result) {
-      successMessage.value = 'Conta criada com sucesso! Redirecionando para o login...'
+    // Supabase sempre retorna dados, mesmo quando email não está confirmado
+    if (result && result.user) {
+      if (result.user.email_confirmed_at) {
+        // Email já confirmado
+        successMessage.value = 'Conta criada com sucesso! Redirecionando para o login...'
+      } else {
+        // Email precisa ser confirmado
+        successMessage.value = 'Conta criada! Verifique seu email para confirmar a conta.'
+      }
       
       // Limpar formulário
       registerForm.email = ''
@@ -254,12 +261,12 @@ const handleRegister = async () => {
       registerForm.password = ''
       registerForm.confirmPassword = ''
       
-      // Voltar para login após 2 segundos
+      // Voltar para login após 3 segundos
       setTimeout(() => {
         showRegister.value = false
         successMessage.value = ''
         clearForm()
-      }, 2000)
+      }, 3000)
     }
   } catch (err) {
     console.error('Erro ao criar conta:', err)
