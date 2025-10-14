@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Conexão - ChargeADS</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Teste de Conexão - ChargeADS</h1>
+        
+        <div>
+            <h3>1. Testar Conexão com Supabase</h3>
+            <button onclick="testConnection()">Testar Conexão</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+
+        <div>
+            <h3>2. Testar Login</h3>
+            <input type="email" id="email" placeholder="Email" value="admin@chargeads.com">
+            <input type="password" id="password" placeholder="Senha" value="123456">
+            <button onclick="testLogin()">Testar Login</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <div>
+            <h3>3. Verificar Usuários no Banco</h3>
+            <button onclick="checkUsers()">Verificar Usuários</button>
+            <div id="usersResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do Supabase
+        const supabaseUrl = 'https://fpafzaxqvudzppabaqum.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwYWZ6YXhxdnVkenBwYWJhcXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyOTczMDMsImV4cCI6MjA3NTg3MzMwM30.PjsRDey8OncpdxvZCGLhQCy0uGurFqa0pc6-A6x12xg'
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult')
+            resultDiv.innerHTML = '🔄 Testando conexão...'
+            
+            try {
+                const { data, error } = await supabase.from('users').select('count').limit(1)
+                
+                if (error) {
+                    resultDiv.innerHTML = `<span class="error">❌ Erro: ${error.message}</span>`
+                } else {
+                    resultDiv.innerHTML = `<span class="success">✅ Conexão OK! Supabase respondendo corretamente.</span>`
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro de conexão: ${err.message}</span>`
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('loginResult')
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+            
+            resultDiv.innerHTML = '🔄 Testando login...'
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                })
+                
+                if (error) {
+                    resultDiv.innerHTML = `<span class="error">❌ Erro de login: ${error.message}</span>`
+                } else {
+                    resultDiv.innerHTML = `<span class="success">✅ Login OK! Usuário: ${data.user.email}</span>`
+                    console.log('Login data:', data)
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro: ${err.message}</span>`
+            }
+        }
+
+        async function checkUsers() {
+            const resultDiv = document.getElementById('usersResult')
+            resultDiv.innerHTML = '🔄 Verificando usuários...'
+            
+            try {
+                // Verificar usuários na tabela public.users
+                const { data: publicUsers, error: publicError } = await supabase
+                    .from('users')
+                    .select('id, email, full_name, role, is_active')
+                    .in('email', ['admin@chargeads.com', 'teste@chargeads.com'])
+                
+                if (publicError) {
+                    resultDiv.innerHTML = `<span class="error">❌ Erro ao buscar usuários: ${publicError.message}</span>`
+                    return
+                }
+
+                let result = '<span class="info">📋 Usuários encontrados na tabela public.users:</span>\n\n'
+                
+                if (publicUsers && publicUsers.length > 0) {
+                    publicUsers.forEach(user => {
+                        result += `✅ ${user.email} - ${user.full_name} (${user.role}) - ${user.is_active ? 'Ativo' : 'Inativo'}\n`
+                    })
+                } else {
+                    result += '❌ Nenhum usuário encontrado na tabela public.users\n'
+                }
+
+                resultDiv.innerHTML = result
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error">❌ Erro: ${err.message}</span>`
+            }
+        }
+
+        // Testar conexão automaticamente ao carregar
+        window.onload = function() {
+            testConnection()
+        }
+    </script>
+</body>
+</html>
