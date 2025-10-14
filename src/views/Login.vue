@@ -244,6 +244,8 @@ const handleRegister = async () => {
     })
     
     console.log('Resultado do registro:', result)
+    console.log('Result.user:', result?.user)
+    console.log('Email confirmado?', result?.user?.email_confirmed_at)
     
     // Supabase sempre retorna dados, mesmo quando email não está confirmado
     if (result && result.user) {
