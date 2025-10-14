@@ -54,7 +54,7 @@
         
         <div class="login-footer">
           <p>&copy; 2024 ChargeADS. Todos os direitos reservados.</p>
-              <p><small>Use suas credenciais criadas ou crie uma nova conta - Sistema online</small></p>
+              <p><small>Use suas credenciais criadas ou crie uma nova conta - VERSÃO 2.0 ONLINE</small></p>
           <div class="login-actions">
             <button type="button" @click="showRegister = true" class="btn btn-outline btn-sm" :disabled="loading">
               Criar Conta
